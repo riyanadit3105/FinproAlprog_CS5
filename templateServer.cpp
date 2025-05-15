@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 
@@ -40,7 +42,27 @@ class Log{
     	}
 };
 
+class User{
+	private:
+		string name;
+		string ID;
+		string RFID;
+		
+	public:
+		User(string n,string m, string o){
+			name = n;
+			ID = m;
+			RFID = o;
+		}
+		
+		string getName() const{ return name; }
+		string getRFID() const{ return RFID; }
+		string getID() const{ return ID; }
+};
+
 vector<Log> logs;
+vector<User> datas;
+
 
 void insertionSort(std::vector<Log>& listLog) {
     int n = listLog.size();
@@ -53,6 +75,15 @@ void insertionSort(std::vector<Log>& listLog) {
         }
         listLog[j + 1] = key;
     }
+}
+
+string getCurrentTime() {
+    time_t now = time(0); // ambil waktu sekarang dalam format epoch (detik)
+    tm* localTime = localtime(&now); // ubah jadi struct waktu lokal
+    
+    stringstream ss;
+    ss << put_time(localTime, "%Y-%m-%d->%H:%M:%S"); // format waktu jadi string
+    return ss.str();
 }
 
 string addLog(string param){
@@ -77,7 +108,7 @@ string getLogs(string param){
  	
  	
  	if(type == "LOCAL"){
- 		message += "Logs local dengan Code(" + log.getCode() + "):\n";
+// 		message += "Logs local dengan Code(" + .getCode() + "):\n";
  		for(const auto& log:temp){
  			if(log.getCode() == code){
  				message += log.getRFID() + " " + log.getAction() + " " + log.getTime() + "\n";
@@ -121,48 +152,76 @@ string exportBiner(string param){
 	return message;
 }
 
+string help(){
+	string message =
+    	"\nList Request:\n"
+    	"- ADD_LOG <RFID> <IN/OUT> (TIMESTAMP) 	-> menambah log baru\n"
+    	"- SEARCH_LOG <ID/RFID/NAME>		-> menampilkan list log berdasarkan ID/RFID/Name\n"
+    	"- GET_SHORTING_LOGS <LOCAL/GLOBAL> (id) -> menampilkan list log Lokal/Global berdasarkan waktu\n" 
+    	"- EXPORT_JSON <LOCAL/GLOBAL> (id) 	-> menyimpan data log Lokal/Global kedalam file JSON\n"
+    	"- EXPORT_BINER <LOCAL/GLOBAL> (id)  	-> menyimpan data log Lokal/Global kedalam file Biner\n"
+    	"- HELP 					-> menampilkan list Request\n"
+    	"- SHUTDOWN				-> mengakhiri program\n\n";
+    	
+	return message;
+}
+
 
 string processRequest(string recvMessage){
-	string request, param,sednMessage;
+	string request, param,sendMessage;
 	
 	stringstream ss(recvMessage);
     getline(ss,request,' ');
     getline(ss,param);
     
     if(request == "ADD_LOG"){
-    	sendMessage = addLogs(param);
+    	sendMessage = addLog(param);
 	}else if(request == "GET_SHORTING_LOGS"){
-		sendMessage = addLogs(param);
+		sendMessage = getLogs(param);
 	}else if(request == "SEARCH_LOG"){
-		sendMessage = addLogs(param);
+		sendMessage = searchLogs(param);
 	}else if(request == "EXPORT_JSON"){
-		sendMessage = addLogs(param);
+		sendMessage = exportJSON(param);
 	}else if(request == "EXPORT_BINER"){
-		sendMessage = addLogs(param);
+		sendMessage = exportBiner(param);
+	}else if(request == "HELP"){
+		sendMessage = help();
 	}else if(request == "SHUTDOWN"){
-		sendMessage = addLogs(param);
+		sendMessage = "Terimkaish program telah selesai";
 	}else{
-		sendMessage = addLogs(param);
+		sendMessage = "Request tidak terdaftar\n";
 	}
     
     return sendMessage;
 }
 
 int main() {
-    string messageSend;
+    string messageSend,code = "K309";
+    
     
     
     while(1){
-    
-    	cout << "Pesan dari server: " << messageRecv <<endl;
-    
-    	string message = processRequest(storage,messageRecv);
-    
-    	send(client_socket, message.c_str(), message.length(), 0);
-    	
-    	if(message == "program telah selesai, menutup server....."){
+    	cout << "Request: ";
+   		getline(cin, messageSend);
+   		
+   		string temp;
+   		
+   		stringstream ss(messageSend);
+   		getline(ss,temp,' ');
+   		
+   		if(temp == "ADD_LOG"){
+   			messageSend += " " + code + " " + getCurrentTime();
+		}else if( temp == "GET_SHORTING_LOGS" || temp == "EXPORT_JSON" || temp == "EXPORT_BINER"){
+			messageSend += " " + code;
+		}
+   		
+   		cout<<messageSend<<endl;
+   		
+    	if(messageSend == "SHUTDOWN"){
     		break;
 		}
+    	
+    	cout<<processRequest(messageSend);
 	}
 
     return 0;
