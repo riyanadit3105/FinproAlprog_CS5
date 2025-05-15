@@ -1,1 +1,8 @@
 "# FinproAlprog_CS5" 
+
+
+ADD_LOG
+GET_LOCAL_LOG
+GET_LOG
+SEARCH_LOG
+SHUTDOWN
