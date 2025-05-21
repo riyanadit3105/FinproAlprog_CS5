@@ -2,9 +2,10 @@
 
 List Request:
 - ADD_LOG <RFID> <IN/OUT> (TIMESTAMP) 	-> menambah log baru
-- SEARCH_LOG <ID/RFID/NAME>		-> menampilkan list log berdasarkan ID/RFID/Name
-- GET_SHORTING_LOGS <LOCAL/GLOBAL> (id) -> menampilkan list log Lokal/Global berdasarkan waktu
-- EXPORT_JSON <LOCAL/GLOBAL> (id) 	-> menyimpan data log Lokal/Global kedalam file JSON
-- EXPORT_BINER <LOCAL/GLOBAL> (id)  	-> menyimpan data log Lokal/Global kedalam file Biner
+- SEARCH_LOG <RFID>		-> menampilkan list log berdasarkan ID/RFID/Name
+- LIST_LOGS -> menampilkan list log Lokal/Global berdasarkan waktu
+- EXPORT_JSON  	-> menyimpan data log Lokal/Global kedalam file JSON
+- CLEAR -> menghapus semua data log
+- DATABASE -> menampilkan daftar anggota
 - HELP 					-> menampilkan list Request
-- SHUTDOWN				-> mengakhiri program\n\n";
+- SHUTDOWN				-> mengakhiri program
