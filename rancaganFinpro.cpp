@@ -1,69 +1,65 @@
-#include <iostream>
-#include <string>
-#include <ctime>
-#include <iomanip>
+#include <iostream>// utama
+#include <fstream>// baca file
+#include <string>//function string
+#include <ctime>//waktu
+#include <iomanip>//
 #include <sstream>
 #include <vector>
 #include <algorithm>
 #include <cctype> 
 
 using namespace std;
-
-
-//	ADD_LOG <RFID> <IN/OUT> (TIMESTAMP) 
-//   	SEARCH_LOG <ID/RFID/NAME>
-//   	GET_SHORTING_LOGS <LOCAL/GLOBAL> (id)
-//  	EXPORT_JSON <LOCAL/GLOBAL> (id)
-//   	EXPORT_BINER <LOCAL/GLOBAL> (id)
-//   	SHUTDOWN
    		
 class Log{
 	private:
 		string RFID;
 		string action;
-		string code;
 		string time;
 		
 	public:
+		Log() {
+        	RFID = "";
+        	action = "";
+       		time = "";
+    	}
+		
 		Log(string param){
 			
  			stringstream ss(param);
  			getline(ss, RFID,' ');
  			getline(ss, action,' ');
- 			getline(ss, code,' ');
  			getline(ss, time,' ');
 		}
 		
 		string getRFID() const { return RFID; }
     	string getAction() const { return action; }
-    	string getCode() const { return code; }
     	string getTime() const { return time; }
     	
     	string toString() const {
-        return "RFID: " + RFID + ", Action: " + action + ", Code: "+ code +", Time: " + time;
+        return "RFID: " + RFID + ", Action: " + action + ", Time: " + time;
     	}
 };
 
-//class User{
-//	private:
-//		string name;
-//		string ID;
-//		string RFID;
-//		
-//	public:
-//		User(string n,string m, string o){
-//			name = n;
-//			ID = m;
-//			RFID = o;
-//		}
-//		
-//		string getName() const{ return name; }
-//		string getRFID() const{ return RFID; }
-//		string getID() const{ return ID; }
-//};
+class User{
+	private:
+		string name;
+		string ID;
+		string RFID;
+		
+	public:
+		User(string n,string m, string o){
+			name = n;
+			ID = m;
+			RFID = o;
+		}
+		
+		string getName() const{ return name; }
+		string getRFID() const{ return RFID; }
+		string getID() const{ return ID; }
+};
 
 vector<Log> logs;
-//vector<User> datas;
+vector<User> datas;
 
 
 void insertionSort(std::vector<Log>& listLog) {
@@ -95,47 +91,60 @@ string toUpper(string str) {
     return str;
 }
 
+int exportBiner(string param){
+	int status=0;
+	
+	char temp[100];
+	strcpy(temp,param.c_str());
+	
+	FILE* file = fopen("logsBiner.bin", "ab");
+	
+	if(file){
+		fwrite(temp, sizeof(temp),1,file);
+		
+		fclose(file);
+		status = 1;	
+	}
+	
+	return status;
+}
+
+int readFileBiner(){
+	int status=0;
+	char data[100];
+	string param;
+	
+	FILE* file = fopen("logsBiner.bin", "rb");
+	
+	if(file){
+		
+		while(fread(data, sizeof(data),1, file)){
+			param = data;
+			
+			Log readLog(param);
+			logs.push_back(readLog);
+		}
+		
+		fclose(file);
+		status = 1;	
+	}
+	
+	cout<<"proses dara ....."<<endl;
+	return status;
+}
+
 string addLog(string param){
 	string message;
 	
 	Log newLog(param);
 	logs.push_back(newLog);
 	
-	message = "Add log berhasil -> " + newLog.toString() +"\n";
- 	return message;
-}
-
-string listLogs(string param){
-	string type,code,message = "";
- 	stringstream ss(param);
- 	getline(ss, type,' ');
- 	getline(ss, code,' ');
- 	
- 	vector<Log> temp = logs;
- 	
- 	insertionSort(temp);
- 	
- 	
- 	if(type == "LOCAL"){
-// 		message += "Logs local dengan Code(" + .getCode() + "):\n";
- 		for(const auto& log:temp){
- 			if(log.getCode() == code){
- 				message += log.getRFID() + " " + log.getAction() + " " + log.getTime() + "\n";
-		 	}
-		}
-	}else if(type == "GLOBAL"){
-		message += "Logs global:\n";
-		for(const auto& log:temp){
-			message += log.getRFID() + " " + log.getAction() + " " + log.getCode() + " " + log.getTime() + "\n";
-		}
+	if(exportBiner(param)){
+		message = "Add log berhasil -> " + newLog.toString() +"\n";
 	}else{
-		message = "Paramater hanya LOCAL/GLOBAL\n";
+		message = "gagal menyimpan log\n";
 	}
 	
-	if (message.empty()) {
-        message = "Tidak ada log.\n";
-    }
- 	
  	return message;
 }
 
@@ -149,50 +158,76 @@ string searchLogs(string param){
 	
 	for(const auto& log:logs){
 		if(log.getRFID() == key){
-			message += log.getAction() + " " + log.getCode() + " " + log.getTime() + "\n";
+			message += log.getAction() + " " + log.getTime() + "\n";
 		}
 	}
 	
-	if(message == ("List Log dengan RFID: "+key+"\n")){
-		message = "Tidak Ada Log.\n";
+	if(logs.empty()){
+		message = "Tidak Ada history log dengan RFID"+ key +"\n";
 	}
-	return message;
-}
-
-string exportJSON(string param){
-	string type,message;
- 	stringstream ss(param);
-	getline(ss, type,' ');
 	
 	return message;
 }
 
-string exportBiner(string param){
-	string type,message;
- 	stringstream ss(param);
-	getline(ss, type,' ');
+string listLogs(){
+	string message;
+	
+ 	vector<Log> temp = logs;
+ 	
+ 	insertionSort(temp);
+ 	
+	message = "Daftar Logs:\n";
+	for(const auto& log:temp){
+		message += log.getRFID() + " " + log.getAction() + " " + log.getTime() + "\n";
+	}
+	
+	if (logs.empty()) {
+        message = "Tidak Ada history log\n";
+    }
+ 	
+ 	return message;
+}
+
+string exportJSON(){
+	string message;
+	
+	return message;
+}
+
+string database(){
+	string message;
+	message = "List anggota yg terdaftar";
+	
+	for(const auto& data:datas){
+		
+	}
+	
+	if(datas.empty()){
+		message = "tidak ada Anggota yg terdaftar";
+	}
 	
 	return message;
 }
 
 string help() {
-    string message;
-	message = "List Request:\n\n"
-			"- ADD_LOG <RFID> <IN/OUT> (TIMESTAMP)      -> menambah log baru\n"
-			"- SEARCH_LOG <ID/RFID/NAME>                -> menampilkan list log berdasarkan ID/RFID/Name\n"
-			"- LIST_LOGS <LOCAL/GLOBAL> (id)            -> menampilkan list log Lokal/Global berdasarkan waktu\n"
-			"- EXPORT_JSON <LOCAL/GLOBAL> (id)          -> menyimpan data log Lokal/Global ke file JSON\n"
-    		"- EXPORT_BINER <LOCAL/GLOBAL> (id)         -> menyimpan data log Lokal/Global ke file Biner\n"
-    		"- HELP                                     -> menampilkan list Request\n"
-    		"- SHUTDOWN                                 -> mengakhiri program\n";
-
+    string message =
+        "List Request:\n\n"
+        "- ADD_LOG <RFID> <IN/OUT> (TIMESTAMP)      -> menambah log baru\n"
+        "- SEARCH_LOG <RFID>                        -> menampilkan list log berdasarkan RFID\n"
+        "- LIST_LOGS                                -> menampilkan list log Lokal/Global berdasarkan waktu\n"
+        "- EXPORT_JSON                              -> menyimpan data log Lokal/Global ke file JSON\n"
+        "- DATABASE                                 -> menampilkan data anggota\n"
+        "- CLEAR                                    -> Menghapus semua history log\n"
+        "- HELP                                     -> menampilkan list Request\n"
+        "- SHUTDOWN                                 -> mengakhiri program\n";
+    
     return message;
 }
-
+	
 
 
 string processRequest(string recvMessage){
-	string request, param,sendMessage;
+	string request, param, sendMessage;
 	
 	stringstream ss(recvMessage);
     getline(ss,request,' ');
@@ -200,14 +235,14 @@ string processRequest(string recvMessage){
     
     if(request == "ADD_LOG"){
     	sendMessage = addLog(param);
-	}else if(request == "LIST_LOGS"){
-		sendMessage = listLogs(param);
 	}else if(request == "SEARCH_LOG"){
 		sendMessage = searchLogs(param);
+	}else if(request == "LIST_LOGS"){
+		sendMessage = listLogs();
 	}else if(request == "EXPORT_JSON"){
-		sendMessage = exportJSON(param);
+		sendMessage = exportJSON();
 	}else if(request == "EXPORT_BINER"){
-		sendMessage = exportBiner(param);
+		sendMessage = database();
 	}else if(request == "HELP"){
 		sendMessage = help();
 	}else if(request == "SHUTDOWN"){
@@ -220,10 +255,13 @@ string processRequest(string recvMessage){
 }
 	
 int main() {
-    string messageSend, code = "K309";
+    string messageSend;
+    
+    readFileBiner();
     
     while(1){
-    	cout << "\nRequest: ";
+    	
+   	 cout << "\nRequest: ";
    		getline(cin, messageSend);
    		
    		messageSend = toUpper(messageSend);
@@ -234,20 +272,10 @@ int main() {
    		getline(ss,temp,' ');
    		
    		if(temp == "ADD_LOG"){
-   			messageSend += " " + code + " " + getCurrentTime();
-		}else if( temp == "GET_SHORTING_LOGS" || temp == "EXPORT_JSON" || temp == "EXPORT_BINER"){
-			messageSend += " " + code;
+   			messageSend += " "+ getCurrentTime();
 		}
-   		
-   		//cout<<messageSend<<endl;
-   		cout<<endl;
-   		
-    	if(messageSend == "SHUTDOWN"){
-    		break;
-		}
-    	
+		
     	cout<<processRequest(messageSend);
 	}
-
     return 0;
 }
