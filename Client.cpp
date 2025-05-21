@@ -22,7 +22,7 @@ string getCurrentTime() {
 }
 
 int main() {
-	// Kerjakan Program anda disini
+	
     WSADATA wsa;
     SOCKET client_socket;
     struct sockaddr_in server;

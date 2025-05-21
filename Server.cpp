@@ -45,7 +45,6 @@ void insertionSort(std::vector<Log>& listLog) {
     for (int i = 1; i < n; i++) {
         Log key = listLog[i];
         int j = i - 1;
-        // Bandingkan waktu, asumsi time string sudah bisa dibandingkan lex order
         while (j >= 0 && listLog[j].getTime() > key.getTime()) {
             listLog[j + 1] = listLog[j]; // geser ke kanan
             j--;
