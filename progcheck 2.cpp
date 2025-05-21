@@ -7,10 +7,6 @@
 #include <vector>
 #include <algorithm>
 #include <cctype> 
-#include "json.hpp"
-
-
-using json = nlohmann::json;
 
 using namespace std;
    		
@@ -38,27 +34,7 @@ class Log{
     	}
 };
 
-class User{
-	private:
-		string name;
-		string ID;
-		string RFID;
-		
-	public:
-		User(string n,string m, string o){
-			name = n;
-			ID = m;
-			RFID = o;
-		}
-		
-		string getName() const{ return name; }
-		string getRFID() const{ return RFID; }
-		string getID() const{ return ID; }
-};
-
 vector<Log> logs;
-vector<User> datas;
-
 
 void insertionSort(vector<Log>& listLog) {
     int n = listLog.size();
@@ -85,7 +61,6 @@ string getCurrentTime() {
     return ss.str();
     
 }
-
 
 string toUpper(string str) {
     transform(str.begin(), str.end(), str.begin(), ::toupper);
@@ -132,23 +107,6 @@ int readFileBiner(){
 	
 	cout<<"proses dara ....."<<endl;
 	return status;
-}
-
-int exportJSON(){
-	ofstream file("logs.json");
-	
-	if(file.is_open()){
-		file<<"[\n";
-		for (const auto& log:logs) {
-        	file << "  {\n";
-        	file << "    \"RFID\": \"" << log.getRFID() << "\",\n";
-        	file << "    \"Action\": \"" << log.getAction() << "\",\n";
-        	file << "    \"Time\": \"" << log.getTime() << "\"\n";
-        	file << "  }";
-        if (i != logs.size() - 1) file << ",";
-        file << "\n";
-    	}
-	}
 }
 
 string addLog(string param){
@@ -216,13 +174,6 @@ string database(){
 	string message;
 	message = "List anggota yg terdaftar";
 	
-	for(const auto& data:datas){
-		
-	}
-	
-	if(datas.empty()){
-		message = "tidak ada Anggota yg terdaftar";
-	}
 	
 	return message;
 }
@@ -233,9 +184,9 @@ string help() {
         "- ADD_LOG <RFID> <IN/OUT> (TIMESTAMP)      -> menambah log baru\n"
         "- SEARCH_LOG <RFID>                        -> menampilkan list log berdasarkan RFID\n"
         "- LIST_LOGS                                -> menampilkan list log Lokal/Global berdasarkan waktu\n"
-        "- EXPORT_JSON                              -> menyimpan data log Lokal/Global ke file JSON\n"
-        "- DATABASE                                 -> menampilkan data anggota\n"
-        "- CLEAR                                    -> Menghapus semua history log\n"
+        "- EXPORT_JSON  (blom ada)                  -> menyimpan data log Lokal/Global ke file JSON\n"
+        "- DATABASE     (blom ada)                  -> menampilkan data anggota\n"
+        "- CLEAR        (blom ada)                  -> Menghapus semua history log\n"
         "- HELP                                     -> menampilkan list Request\n"
         "- SHUTDOWN                                 -> mengakhiri program\n";
     
@@ -294,6 +245,10 @@ int main() {
 		}
 		
     	cout<<processRequest(messageSend);
+    	
+    	if(temp == "SHUTDOWN"){
+    		break;
+		}
 	}
     return 0;
 }
